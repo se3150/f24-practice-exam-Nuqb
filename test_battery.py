@@ -28,9 +28,17 @@ def describe_Battery():
             b = Battery(100, external_monitor=mock)
             b.mCharge = 50 # starting battery charge
 
-            b.recharge(30)
+            result = b.recharge(30)
+            assert result == True
             assert b.mCharge == 80
             mock.notify_recharge.assert_called_once_with(80)
+
+            mock.reset_mock()
+            
+            result = b.recharge(-20)
+            assert result == False
+            assert b.mCharge == 80
+            mock.notify_recharge.assert_not_called()
 
     def describe_drain():
         def it_drains_to_zero():
@@ -39,5 +47,22 @@ def describe_Battery():
             b.drain(100)
             assert b.mCharge == 0
 
+        def it_drains_and_notifies_monitor():
+            mock = Mock()
+            b = Battery(100, external_monitor=mock)
+            b.mCharge = 100
 
+            #Success case
+            result = b.drain(50)
+            assert result == True
+            assert b.mCharge == 50
+            mock.notify_drain.assert_called_once_with(50)
+
+            mock.reset_mock()
+
+            #failure case
+            result = b.drain(0)
+            assert result == False
+            assert b.mCharge == 50
+            mock.notify_drain.assert_not_called()
     
